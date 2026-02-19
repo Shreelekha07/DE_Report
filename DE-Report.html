@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Extraction Comparison Report</title>
+<style>
+
+:root {
+  --clr-bg: #f4f6fb;
+  --clr-card: #ffffff;
+  --clr-primary: #2563eb;
+  --clr-primary-light: #dbeafe;
+  --clr-success: #16a34a;
+  --clr-success-light: #dcfce7;
+  --clr-danger: #dc2626;
+  --clr-danger-light: #fee2e2;
+  --clr-warning: #d97706;
+  --clr-warning-light: #fef3c7;
+  --clr-info: #0891b2;
+  --clr-info-light: #cffafe;
+  --clr-text: #1e293b;
+  --clr-text-secondary: #64748b;
+  --clr-border: #e2e8f0;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg: 0 4px 14px rgba(0,0,0,.1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--clr-bg); color: var(--clr-text); line-height: 1.6; }
+.container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+/* Header */
+.header { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); color: #fff; padding: 32px 40px; border-radius: var(--radius); margin-bottom: 24px; box-shadow: var(--shadow-lg); }
+.header h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 4px; }
+.header .subtitle { opacity: .8; font-size: .9rem; }
+
+/* Status Banner */
+.status-banner { display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-radius: var(--radius); margin-bottom: 24px; font-weight: 600; font-size: 1.1rem; box-shadow: var(--shadow); }
+.status-banner.status-pass { background: var(--clr-success-light); color: var(--clr-success); border: 1px solid #bbf7d0; }
+.status-banner.status-fail { background: var(--clr-danger-light); color: var(--clr-danger); border: 1px solid #fecaca; }
+.status-banner .icon { font-size: 1.5rem; }
+
+/* Metric Cards */
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+.metric-card { background: var(--clr-card); border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow); border-left: 4px solid var(--clr-primary); }
+.metric-card .label { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--clr-text-secondary); margin-bottom: 4px; }
+.metric-card .value { font-size: 1.75rem; font-weight: 700; }
+.metric-card.success { border-left-color: var(--clr-success); }
+.metric-card.success .value { color: var(--clr-success); }
+.metric-card.danger { border-left-color: var(--clr-danger); }
+.metric-card.danger .value { color: var(--clr-danger); }
+.metric-card.warning { border-left-color: var(--clr-warning); }
+.metric-card.warning .value { color: var(--clr-warning); }
+.metric-card.info { border-left-color: var(--clr-info); }
+.metric-card.info .value { color: var(--clr-info); }
+
+/* Progress Bar */
+.progress-section { background: var(--clr-card); border-radius: var(--radius); padding: 24px; margin-bottom: 28px; box-shadow: var(--shadow); }
+.progress-section h3 { margin-bottom: 12px; font-size: 1rem; }
+.progress-bar-bg { background: #e2e8f0; border-radius: 999px; height: 28px; overflow: hidden; position: relative; }
+.progress-bar-fill { height: 100%; border-radius: 999px; transition: width .4s ease; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 600; color: #fff; min-width: 44px; }
+.progress-bar-fill.green { background: linear-gradient(90deg, #22c55e, #16a34a); }
+.progress-bar-fill.yellow { background: linear-gradient(90deg, #facc15, #eab308); color: #1e293b; }
+.progress-bar-fill.red { background: linear-gradient(90deg, #f87171, #dc2626); }
+
+/* Charts */
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+@media (max-width: 768px) { .charts-row { grid-template-columns: 1fr; } }
+.chart-card { background: var(--clr-card); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.chart-card h3 { margin-bottom: 16px; font-size: 1rem; }
+
+/* Bar chart (CSS only) */
+.bar-chart { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-label { width: 90px; font-size: .8rem; text-align: right; color: var(--clr-text-secondary); flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-track { flex: 1; background: #e2e8f0; border-radius: 6px; height: 22px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 8px; font-size: .75rem; font-weight: 600; color: #fff; min-width: 24px; }
+.bar-value { font-size: .8rem; width: 44px; text-align: left; color: var(--clr-text-secondary); flex-shrink: 0; }
+
+/* Donut (SVG) */
+.donut-container { display: flex; justify-content: center; align-items: center; gap: 24px; flex-wrap: wrap; }
+.donut-legend { display: flex; flex-direction: column; gap: 6px; }
+.donut-legend-item { display: flex; align-items: center; gap: 8px; font-size: .85rem; }
+.donut-legend-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+
+/* Section */
+.section { background: var(--clr-card); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.15rem; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--clr-border); }
+.section h3 { font-size: 1rem; margin: 16px 0 8px; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+thead th { background: #f1f5f9; color: var(--clr-text-secondary); font-weight: 600; text-transform: uppercase; font-size: .75rem; letter-spacing: .04em; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--clr-border); position: sticky; top: 0; }
+tbody td { padding: 10px 14px; border-bottom: 1px solid var(--clr-border); vertical-align: top; }
+tbody tr:hover { background: #f8fafc; }
+tbody tr.row-perfect td { color: var(--clr-success); }
+tbody tr.row-issue td { color: var(--clr-danger); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .75rem; font-weight: 600; }
+.badge-green { background: var(--clr-success-light); color: var(--clr-success); }
+.badge-red { background: var(--clr-danger-light); color: var(--clr-danger); }
+.badge-yellow { background: var(--clr-warning-light); color: var(--clr-warning); }
+.badge-blue { background: var(--clr-primary-light); color: var(--clr-primary); }
+
+/* Empty State */
+.empty-state { text-align: center; padding: 32px; color: var(--clr-text-secondary); font-style: italic; }
+
+/* Collapsible */
+details { margin-bottom: 8px; }
+details summary { cursor: pointer; font-weight: 600; padding: 8px 0; color: var(--clr-primary); }
+details summary:hover { text-decoration: underline; }
+
+/* Footer */
+.footer { text-align: center; padding: 24px; color: var(--clr-text-secondary); font-size: .8rem; }
+
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>Data Extraction Comparison Report</h1>
+  <div class="subtitle">Generated on 2026-02-18 22:58:17</div>
+</div>
+
+<div class="status-banner status-pass">
+  <span class="icon">&#10004;</span>
+  <span>ALL FIELDS MATCHED</span>
+</div>
+<div class="metrics-grid">
+<div class="metric-card info"><div class="label">Total SP Fields</div><div class="value">1,850</div></div>
+<div class="metric-card info"><div class="label">Implementation Fields</div><div class="value">1,850</div></div>
+<div class="metric-card success"><div class="label">Matched Fields</div><div class="value">1,850</div></div>
+<div class="metric-card success"><div class="label">Missing in Impl</div><div class="value">0</div></div>
+<div class="metric-card success"><div class="label">Unmatched SP Instances</div><div class="value">0</div></div>
+<div class="metric-card success"><div class="label">Extra in Impl</div><div class="value">0</div></div>
+<div class="metric-card success"><div class="label">Value Mismatches</div><div class="value">0</div></div>
+<div class="metric-card success"><div class="label">Missing Doc IDs</div><div class="value">0</div></div>
+</div>
+
+<div class="progress-section">
+  <h3>Overall Match Rate</h3>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill green" style="width:100%">100%</div>
+  </div>
+</div>
+<div class="charts-row">
+<div class="chart-card">
+<h3>Field Status Breakdown</h3>
+<div class="donut-container">
+<svg width="180" height="180" viewBox="0 0 42 42">
+<circle cx="21" cy="21" r="15.915" fill="none" stroke="#16a34a" stroke-width="6" stroke-dasharray="100 0" stroke-dashoffset="25" />
+<text x="21" y="22" text-anchor="middle" font-size="6" font-weight="700" fill="#1e293b">100%</text>
+</svg>
+<div class="donut-legend">
+<div class="donut-legend-item"><div class="donut-legend-swatch" style="background:#16a34a"></div>Matched: 1,850</div>
+<div class="donut-legend-item"><div class="donut-legend-swatch" style="background:#dc2626"></div>Missing: 0</div>
+<div class="donut-legend-item"><div class="donut-legend-swatch" style="background:#d97706"></div>Unmatched SP: 0</div>
+<div class="donut-legend-item"><div class="donut-legend-swatch" style="background:#2563eb"></div>Extra: 0</div>
+<div class="donut-legend-item"><div class="donut-legend-swatch" style="background:#7c3aed"></div>Mismatches: 0</div>
+</div>
+</div>
+</div>
+<div class="chart-card">
+<h3>Fields per Document Type</h3>
+<div class="bar-chart">
+<div class="bar-row"><div class="bar-label" title="DTSURLA1">DTSURLA1</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#2563eb">1108</div></div><div class="bar-value">8 docs</div></div>
+<div class="bar-row"><div class="bar-label" title="DTSAPPLR">DTSAPPLR</div><div class="bar-track"><div class="bar-fill" style="width:20%;background:#0891b2">227</div></div><div class="bar-value">1 doc</div></div>
+<div class="bar-row"><div class="bar-label" title="DTSCLOCD">DTSCLOCD</div><div class="bar-track"><div class="bar-fill" style="width:16%;background:#7c3aed">174</div></div><div class="bar-value">3 docs</div></div>
+<div class="bar-row"><div class="bar-label" title="DTSFHAUT">DTSFHAUT</div><div class="bar-track"><div class="bar-fill" style="width:8%;background:#16a34a">85</div></div><div class="bar-value">1 doc</div></div>
+<div class="bar-row"><div class="bar-label" title="DTSAUSDU">DTSAUSDU</div><div class="bar-track"><div class="bar-fill" style="width:4%;background:#d97706">43</div></div><div class="bar-value">1 doc</div></div>
+<div class="bar-row"><div class="bar-label" title="DTSLOANE">DTSLOANE</div><div class="bar-track"><div class="bar-fill" style="width:4%;background:#dc2626">40</div></div><div class="bar-value">4 docs</div></div>
+<div class="bar-row"><div class="bar-label" title="DTSFHAHU">DTSFHAHU</div><div class="bar-track"><div class="bar-fill" style="width:3%;background:#be185d">31</div></div><div class="bar-value">1 doc</div></div>
+<div class="bar-row"><div class="bar-label" title="DTSCLODD">DTSCLODD</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:#4f46e5">25</div></div><div class="bar-value">1 doc</div></div>
+<div class="bar-row"><div class="bar-label" title="DTSCLODN">DTSCLODN</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:#2563eb">20</div></div><div class="bar-value">1 doc</div></div>
+<div class="bar-row"><div class="bar-label" title="DTSFHAAC">DTSFHAAC</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:#0891b2">17</div></div><div class="bar-value">1 doc</div></div>
+<div class="bar-row"><div class="bar-label" title="DTSINCVW">DTSINCVW</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:#7c3aed">17</div></div><div class="bar-value">1 doc</div></div>
+<div class="bar-row"><div class="bar-label" title="DTSPROFC">DTSPROFC</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:#16a34a">17</div></div><div class="bar-value">1 doc</div></div>
+</div>
+</div>
+</div>
+<div class="section">
+<h2>Document-Level Comparison</h2>
+<table>
+<thead><tr><th>Document ID</th><th>Type</th><th>SP Fields</th><th>Impl Fields</th><th>Matched</th><th>Missing</th><th>Extra</th><th>Unmatched SP</th><th>Status</th></tr></thead>
+<tbody>
+<tr class="row-perfect"><td title="293E7B35-E2D8-4AF3-93CF-405459F71E5A">293E7B35...</td><td><strong>DTSAPPLR</strong></td><td>227</td><td>227</td><td>227</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="74AF9CEA-DA92-4E7E-8F2F-E04C6B5C8C22">74AF9CEA...</td><td><strong>DTSAUSDU</strong></td><td>43</td><td>43</td><td>43</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="0C01E189-A008-47BB-8900-43A5D889199D">0C01E189...</td><td><strong>DTSCLOCD</strong></td><td>57</td><td>57</td><td>57</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="6C607F01-B574-4E35-8CB6-866FE76552BE">6C607F01...</td><td><strong>DTSCLOCD</strong></td><td>62</td><td>62</td><td>62</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="451341EC-9769-450F-8867-B6A4C6AF25A1">451341EC...</td><td><strong>DTSCLOCD</strong></td><td>55</td><td>55</td><td>55</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="A9E0A2BF-91A8-418A-B370-D6918FCA7419">A9E0A2BF...</td><td><strong>DTSCLODD</strong></td><td>25</td><td>25</td><td>25</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="A3B51BA8-DCC2-4CD3-833A-2711E58972C0">A3B51BA8...</td><td><strong>DTSCLODN</strong></td><td>20</td><td>20</td><td>20</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="8CE0C444-417F-48A2-BBC3-941834343F62">8CE0C444...</td><td><strong>DTSCLODS</strong></td><td>3</td><td>3</td><td>3</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="F7E14FB3-A3C8-4913-BDC8-6DB7A1615BAA">F7E14FB3...</td><td><strong>DTSCREDR</strong></td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="2A926336-1CA6-4266-A75E-AD5B8B22986C">2A926336...</td><td><strong>DTSFHAAC</strong></td><td>17</td><td>17</td><td>17</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="2EECF9B0-DC1A-4BC8-8302-EF3E2C72B749">2EECF9B0...</td><td><strong>DTSFHAHU</strong></td><td>31</td><td>31</td><td>31</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="32629284-8F83-42EF-9A7B-811CE3DA980E">32629284...</td><td><strong>DTSFHAUT</strong></td><td>85</td><td>85</td><td>85</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="4DEA8AB7-3186-4341-A860-9F37CF028BA4">4DEA8AB7...</td><td><strong>DTSINCVW</strong></td><td>17</td><td>17</td><td>17</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="B044B05E-E266-41B9-AB1D-38E9B3341622">B044B05E...</td><td><strong>DTSLOANE</strong></td><td>10</td><td>10</td><td>10</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="D3C5E529-E610-4EA8-9B85-810D41CA4799">D3C5E529...</td><td><strong>DTSLOANE</strong></td><td>10</td><td>10</td><td>10</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="EA318B94-DEE7-4F88-B4B3-311897BFE2A9">EA318B94...</td><td><strong>DTSLOANE</strong></td><td>10</td><td>10</td><td>10</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="BC36F602-4014-4B5E-B174-627896F508D1">BC36F602...</td><td><strong>DTSLOANE</strong></td><td>10</td><td>10</td><td>10</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="956089E0-1B16-44A5-A22C-D3AA208242C6">956089E0...</td><td><strong>DTSPROCC</strong></td><td>12</td><td>12</td><td>12</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="6415F074-D91F-4BD8-B263-9364349AAA94">6415F074...</td><td><strong>DTSPROFC</strong></td><td>17</td><td>17</td><td>17</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="35AA61FA-2A41-49CE-B407-4804BDDCDFC1">35AA61FA...</td><td><strong>DTSPROHP</strong></td><td>7</td><td>7</td><td>7</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="4C765296-E8E5-4BF3-BCAD-A0DB95856170">4C765296...</td><td><strong>DTSPROPC</strong></td><td>5</td><td>5</td><td>5</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="E6169374-06B8-413B-8A48-62EA7F99E924">E6169374...</td><td><strong>DTSPROTR</strong></td><td>12</td><td>12</td><td>12</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="4E65D1C8-B821-4F1B-BC46-83F6D9394581">4E65D1C8...</td><td><strong>DTSTAXW9</strong></td><td>5</td><td>5</td><td>5</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="0FCC98FE-1255-4DED-A5C3-CBC4148CD261">0FCC98FE...</td><td><strong>DTSURLA1</strong></td><td>124</td><td>124</td><td>124</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="B79B89F2-FE68-4BA7-BFDB-1B832070E785">B79B89F2...</td><td><strong>DTSURLA1</strong></td><td>125</td><td>125</td><td>125</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="58CE77DC-AC37-46BB-AED3-CB116B4C1AED">58CE77DC...</td><td><strong>DTSURLA1</strong></td><td>154</td><td>154</td><td>154</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="064B90B4-7FF5-4E97-A36D-47668AF5639C">064B90B4...</td><td><strong>DTSURLA1</strong></td><td>135</td><td>135</td><td>135</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="3C1AFA84-9BB5-4A33-A952-E75E9590EBEF">3C1AFA84...</td><td><strong>DTSURLA1</strong></td><td>143</td><td>143</td><td>143</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="5B4EBBA4-E60E-4C75-AE76-485098EFF453">5B4EBBA4...</td><td><strong>DTSURLA1</strong></td><td>142</td><td>142</td><td>142</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="4DACD129-802C-4169-851E-1E6994DE58CD">4DACD129...</td><td><strong>DTSURLA1</strong></td><td>140</td><td>140</td><td>140</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+<tr class="row-perfect"><td title="FD663C53-F629-4566-B473-E776BD7D7374">FD663C53...</td><td><strong>DTSURLA1</strong></td><td>145</td><td>145</td><td>145</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-green">Perfect</span></td></tr>
+</tbody></table>
+</div>
+
+<div class="section">
+  <h2>Glossary</h2>
+  <table>
+    <tbody>
+      <tr><td><strong>Missing in Implementation</strong></td><td>Field names that exist in SP output but have no corresponding entry in the implementation output at all.</td></tr>
+      <tr><td><strong>Unmatched SP Instances</strong></td><td>Additional SP field instances from different entity paths (e.g., BORROWER_2 when implementation only has BORROWER_1). The field name exists in both, but SP has extra instances.</td></tr>
+      <tr><td><strong>Extra in Implementation</strong></td><td>Fields present in implementation output that do not appear in the SP output.</td></tr>
+      <tr><td><strong>Value Mismatches</strong></td><td>Fields that exist in both outputs but have different values for the same field name, document, and entity path.</td></tr>
+      <tr><td><strong>SP field count difference</strong></td><td>= Missing + Unmatched SP Instances</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="footer">
+  Data Extraction Comparison Report &bull; Generated 2026-02-18 22:58:17
+</div>
+</div>
+</body>
+</html>
